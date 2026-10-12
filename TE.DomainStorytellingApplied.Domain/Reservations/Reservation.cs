@@ -1,3 +1,4 @@
+using TE.DomainStorytellingApplied.Domain.Reservations.Rules;
 using TE.DomainStorytellingApplied.Domain.Shared;
 using TE.DomainStorytellingApplied.Domain.Timeslots;
 
@@ -32,8 +33,7 @@ public sealed class Reservation
         BookerId bookerId, PremisesId premisesId, IEnumerable<TimeslotId> timeslotIds)
     {
         var ids = timeslotIds.Distinct().ToList();
-        if (ids.Count == 0)
-            throw new DomainValidationException("A reservation needs at least one timeslot.");
+        Rule.Check(new ReservationMustHaveTimeslots(ids));
 
         return new Reservation(ReservationId.New(), bookerId, premisesId, ids);
     }
@@ -46,8 +46,7 @@ public sealed class Reservation
 
     public void Reject(string reason)
     {
-        if (string.IsNullOrWhiteSpace(reason))
-            throw new DomainValidationException("A rejection needs a reason.");
+        Rule.Check(new RejectionMustHaveReason(reason));
 
         MoveFrom([ReservationStatus.Requested, ReservationStatus.UnderReview], ReservationStatus.Rejected);
         RejectionReason = reason;
@@ -55,8 +54,7 @@ public sealed class Reservation
 
     private void MoveFrom(ReservationStatus[] allowedFrom, ReservationStatus to)
     {
-        if (!allowedFrom.Contains(Status))
-            throw new DomainValidationException($"A reservation that is {Status} cannot become {to}.");
+        Rule.Check(new ReservationMustBeInStatus(this, allowedFrom, to));
 
         Status = to;
     }

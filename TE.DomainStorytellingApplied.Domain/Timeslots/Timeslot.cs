@@ -1,5 +1,6 @@
 using TE.DomainStorytellingApplied.Domain.Reservations;
 using TE.DomainStorytellingApplied.Domain.Shared;
+using TE.DomainStorytellingApplied.Domain.Timeslots.Rules;
 
 namespace TE.DomainStorytellingApplied.Domain.Timeslots;
 
@@ -28,8 +29,7 @@ public sealed class Timeslot
 
     public void Reserve(ReservationId reservationId)
     {
-        if (Status != TimeslotStatus.Available)
-            throw new DomainValidationException("Timeslot is not available.");
+        Rule.Check(new TimeslotMustBeAvailable(this));
 
         Status = TimeslotStatus.Reserved;
         ReservationId = reservationId;
@@ -37,8 +37,7 @@ public sealed class Timeslot
 
     public void Release(ReservationId reservationId)
     {
-        if (Status != TimeslotStatus.Reserved || ReservationId != reservationId)
-            throw new DomainValidationException("Timeslot is not reserved by this reservation.");
+        Rule.Check(new TimeslotMustBeReservedByReservation(this, reservationId));
 
         Status = TimeslotStatus.Available;
         ReservationId = null;
@@ -46,8 +45,7 @@ public sealed class Timeslot
 
     public void Block()
     {
-        if (Status == TimeslotStatus.Reserved)
-            throw new DomainValidationException("Reserved timeslot must be released before it is blocked.");
+        Rule.Check(new TimeslotMustNotBeReserved(this));
 
         Status = TimeslotStatus.Blocked;
     }

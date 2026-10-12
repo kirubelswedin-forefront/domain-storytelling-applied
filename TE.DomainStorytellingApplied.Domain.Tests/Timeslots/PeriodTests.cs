@@ -1,3 +1,4 @@
+using TE.DomainStorytellingApplied.Domain.Shared;
 using TE.DomainStorytellingApplied.Domain.Timeslots;
 
 namespace TE.DomainStorytellingApplied.Domain.Tests.Timeslots;
@@ -17,7 +18,7 @@ public class PeriodTests
         var create = () => new Period(start, end);
 
         // Assert
-        create.Should().Throw<ArgumentException>();
+        create.Should().Throw<DomainValidationException>().Which.Domain.Should().Be(nameof(Period));
     }
 
     [Test]
@@ -30,6 +31,6 @@ public class PeriodTests
         var create = () => new Period(localStart, Utc(18));
 
         // Assert
-        create.Should().Throw<ArgumentException>();
+        create.Should().Throw<DomainValidationException>().Which.Domain.Should().Be(nameof(Period));
     }
 }

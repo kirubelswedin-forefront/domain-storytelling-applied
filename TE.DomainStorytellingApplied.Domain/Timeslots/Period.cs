@@ -1,13 +1,14 @@
+using TE.DomainStorytellingApplied.Domain.Shared;
+using TE.DomainStorytellingApplied.Domain.Timeslots.Rules;
+
 namespace TE.DomainStorytellingApplied.Domain.Timeslots;
 
 public sealed record Period
 {
     public Period(DateTime startUtc, DateTime endUtc)
     {
-        if (startUtc.Kind != DateTimeKind.Utc || endUtc.Kind != DateTimeKind.Utc)
-            throw new ArgumentException("Period must be expressed in UTC.");
-        if (endUtc <= startUtc)
-            throw new ArgumentException("End must be after start.");
+        Rule.Check(new PeriodMustBeInUtc(startUtc, endUtc));
+        Rule.Check(new PeriodMustEndAfterItStarts(startUtc, endUtc));
 
         StartUtc = startUtc;
         EndUtc = endUtc;
@@ -16,4 +17,6 @@ public sealed record Period
     public DateTime StartUtc { get; }
 
     public DateTime EndUtc { get; }
+
+    public TimeSpan Duration => EndUtc - StartUtc;
 }
